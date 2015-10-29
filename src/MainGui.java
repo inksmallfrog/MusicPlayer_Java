@@ -1,4 +1,5 @@
 import Gui.WebeasyMusicGui;
+import MessageManager.MessageManager;
 import Music.Music;
 
 import java.awt.*;
@@ -11,6 +12,8 @@ public class MainGui {
         EventQueue.invokeLater(() -> {
             //main frame
             WebeasyMusicGui webeasyMusic = new WebeasyMusicGui();
+
+            MessageManager.getMessageManager().setMainGui(webeasyMusic);
 
             //test
             Music music0 = new Music("./a.mp3");

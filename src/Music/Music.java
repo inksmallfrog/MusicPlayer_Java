@@ -11,17 +11,20 @@ import java.io.File;
  * Created by inksmallfrog on 10/26/15.
  */
 public class Music {
-    private static String[] itemDescribtion = {
+    private static String[] fieldDescribtion = {
             "曲名", "歌手"
     };
 
-    public enum eItemDescribtion{
-        TITLE, ARTIST
-    }
+    private static FieldKey[] fieldKeysOrder = {
+            FieldKey.TITLE,
+            FieldKey.ARTIST
+    };
+
+    AudioFile file;
+    Tag tag;
 
     String fileName = null;
     String urlName = null;
-    String[] describtions = new String[itemDescribtion.length];
     boolean isOffLine;
 
     public Music(String _fileName){
@@ -48,8 +51,13 @@ public class Music {
         }
     }
 
+    public static String[] getHeaders(){
+        return fieldDescribtion;
+    }
+
     public String getDescribtion(int i){
-        return describtions[i];
+        String result = tag.getFirst(fieldKeysOrder[i]);
+        return (result == null)? "未知" : result;
     }
 
     public String getFileName(){
@@ -57,14 +65,14 @@ public class Music {
     }
 
     public static int getItemDescribtionLength(){
-        return itemDescribtion.length;
+        return fieldKeysOrder.length;
     }
 
     public static String getItemDescibtion(int i){
-        if(i < 0 || i >= itemDescribtion.length){
+        if(i < 0 || i >= fieldKeysOrder.length){
             return null;
         }
-        return itemDescribtion[i];
+        return fieldDescribtion[i];
     }
 
     @Override
@@ -72,60 +80,30 @@ public class Music {
         if(other.getClass() != this.getClass()){
             return false;
         }
-        if(describtions[eItemDescribtion.TITLE.ordinal()]
-                .equals(((Music) other).describtions[eItemDescribtion.TITLE.ordinal()])){
+        if(tag.getFirst(FieldKey.TITLE)
+                .equals(((Music) other).tag.getFirst(FieldKey.TITLE))){
             return true;
         }
         return false;
     }
 
-    private void AnalyzeMusicOffLine(){
+    public void AnalyzeMusicOffLine(){
         File file = new File(fileName);
         AnalyzeMusicOffLine(file);
     }
 
-    private void AnalyzeMusicOffLine(File file){
-        String file_name = file.getName();
-
-        try{
-            AudioFile file_tag = AudioFileIO.read(file);
-            Tag tag = file_tag.getTag();
-            if(null != tag) {
-                describtions[eItemDescribtion.TITLE.ordinal()] = tag.getFirst(FieldKey.TITLE);
-                describtions[eItemDescribtion.ARTIST.ordinal()] = tag.getFirst(FieldKey.ARTIST);
-                if ("" == describtions[eItemDescribtion.TITLE.ordinal()]) {
-                    int sperator_pos = file_name.indexOf('-');
-                    int suffix_pos = file_name.lastIndexOf('.');
-                    if (-1 == sperator_pos) {
-                        describtions[eItemDescribtion.TITLE.ordinal()] = file_name.substring(0, suffix_pos);
-                    } else {
-                        describtions[eItemDescribtion.TITLE.ordinal()] = file_name.substring(0, sperator_pos);
-                    }
-                }
-                if ("" == describtions[eItemDescribtion.ARTIST.ordinal()]) {
-                    int sp_pos = file_name.indexOf('-');
-                    if (-1 == sp_pos) {
-                        describtions[eItemDescribtion.ARTIST.ordinal()] = "未知";
-                    } else {
-                        describtions[eItemDescribtion.ARTIST.ordinal()] = file_name.substring(sp_pos, file_name.length());
-                    }
-                }
-            }
-            else{
-                int sperator_pos = file_name.indexOf('-');
-                int suffix_pos = file_name.lastIndexOf('.');
-                if (-1 == sperator_pos) {
-                    describtions[eItemDescribtion.TITLE.ordinal()]  = file_name.substring(0, suffix_pos);
-                    describtions[eItemDescribtion.ARTIST.ordinal()] = "未知";
-                } else {
-                    describtions[eItemDescribtion.TITLE.ordinal()]  = file_name.substring(0, sperator_pos);
-                    describtions[eItemDescribtion.ARTIST.ordinal()] = file_name.substring(sperator_pos, file_name.length());
-                }
-            }
+    private void AnalyzeMusicOffLine(File _file){
+        try {
+            file = AudioFileIO.read(_file);
+            tag = file.getTagOrCreateDefault();
         }
         catch(Exception e){
             e.printStackTrace();
         }
+    }
+
+    public AudioFile getAudioFile(){
+        return file;
     }
 
 }
