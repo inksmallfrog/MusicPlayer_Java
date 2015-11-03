@@ -93,7 +93,7 @@ public class PlayingVector {
         player.SetMusicPosition(microSecond);
     }
 
-    public Vector getMusicVector(){
+    public Vector getMusicVector() {
         return music;
     }
 

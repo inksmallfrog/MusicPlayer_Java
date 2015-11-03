@@ -98,7 +98,7 @@ public class MusicInfoEditGui extends JFrame{
         catch (Exception e){
             e.printStackTrace();
         }
-        MessageManager.RefreshPlayingTable(row);
+        MessageManager.getMainGui().RefreshTable(row);
         dispose();
     }
 }

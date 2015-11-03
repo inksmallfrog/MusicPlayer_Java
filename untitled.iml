@@ -9,5 +9,10 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="jl1.0.1" level="project" />
     <orderEntry type="library" name="jaudiotagger-2.2.5" level="project" />
+    <orderEntry type="library" name="jtattoo" level="project" />
+    <orderEntry type="library" name="SwingSets2(BeautyEyeLNFDemo)" level="project" />
+    <orderEntry type="library" name="JTattoo" level="project" />
+    <orderEntry type="library" name="substance" level="project" />
+    <orderEntry type="library" name="trident" level="project" />
   </component>
 </module>

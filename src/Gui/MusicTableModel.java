@@ -56,6 +56,15 @@ public class MusicTableModel extends DefaultTableModel {
         }
     }
 
+    public void insertRow(Music music, int row){
+        dataVector.insertElementAt(music, row);
+        fireTableRowsInserted(row, row);
+    }
+
+    public void addRow(Music music){
+        insertRow(music, dataVector.size());
+    }
+
     @Override
     public void setValueAt(Object aValue, int row, int column) {
         ((Music)dataVector.get(row)).AnalyzeMusicOffLine();

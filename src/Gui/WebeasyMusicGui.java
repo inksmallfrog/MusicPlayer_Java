@@ -1,11 +1,11 @@
 package Gui;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.dnd.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -29,9 +29,9 @@ public class WebeasyMusicGui extends JFrame{
     //table_music_list
     private JScrollPane table_scroll_pane;
     private JTable table_music_list;
-    private DefaultTableModel table_music_list_model;
-    private DefaultCellEditor table_music_button_editor;
-    private DefaultTableCellRenderer table_music_list_renderer;
+    private MusicTableModel table_music_list_model;
+    private MusicTableEditor table_music_button_editor;
+    private MusicTableRenderer table_music_list_renderer;
 
     //left_bar
     private JToolBar left_bar;
@@ -46,23 +46,18 @@ public class WebeasyMusicGui extends JFrame{
     private JSlider bottom_slider_time;
     private JLabel bottom_label_timeNow;
     private JLabel bottom_label_timeAll;
+    private JButton bottom_button_playingList;
     private JComboBox<String> bottom_combobox_playMode;
 
     //for drag_window
     private Point drag_initPos;
 
     //for save music
-    //private Vector<Music> music_list;
     private PlayingVector music_list;
-
-    //for player
-    //private Player player;
-    //private long current_music_mircosecond_length;
 
     //for show time
     private Thread thread_refreshTime;
     private boolean thread_refreshTime_quit;
-
 
     public WebeasyMusicGui(){
         setSize(window_width, window_height);
@@ -79,21 +74,12 @@ public class WebeasyMusicGui extends JFrame{
         thread_refreshTime = new Thread();
         thread_refreshTime_quit = false;
 
-        CreateAllCompnent();
+        CreateAllCompnents();
 
-        //player = new Player();
-        //current_music_mircosecond_length = 0;
-
-        /*if(!music_list.isEmpty()){
-            SelectMusic(music_list.get(current_select_music).getFileName());
-        }
-        if(music_list.isSelected()){
-            SelectMusic(music_list.getSelectedFileName());
-        }*/
         music_list.SelectMusic(0);
     }
 
-    private void CreateAllCompnent(){
+    private void CreateAllCompnents(){
         CreateMusicTable();
         CreateLeftBar();
         CreateControlBar();
@@ -106,7 +92,7 @@ public class WebeasyMusicGui extends JFrame{
 
     private void CreateMusicTable(){
         CreateMusicTableModel();
-        CreateMusicCellEditor();
+        CreateMusicTableButtonCellEditor();
         CreateMusicTableCellRenderer();
 
         table_music_list = new JTable(table_music_list_model);
@@ -128,7 +114,7 @@ public class WebeasyMusicGui extends JFrame{
         table_music_list_model.addColumn("button");
     }
 
-    private void CreateMusicCellEditor(){
+    private void CreateMusicTableButtonCellEditor(){
         table_music_button_editor = new MusicTableEditor(music_list);
     }
 
@@ -139,6 +125,7 @@ public class WebeasyMusicGui extends JFrame{
     private void CreateLeftBar(){
         left_bar = new JToolBar();
         left_bar.setFloatable(false);
+        left_bar.setLayout(new BoxLayout(left_bar, BoxLayout.Y_AXIS));
 
         left_button_addFiles = new JButton("添加音乐");
         left_button_addDirectory = new JButton("添加文件夹");
@@ -153,18 +140,16 @@ public class WebeasyMusicGui extends JFrame{
         bottom_bar.setFloatable(false);
 
         bottom_button_previous = new JButton("上一首");
-
         bottom_button_control = new JButton("播放");
-
         bottom_button_next = new JButton("下一首");
-
 
         bottom_slider_time = new JSlider();
         bottom_slider_time.setValue(0);
 
-
         bottom_label_timeNow = new JLabel("00:00");
         bottom_label_timeAll = new JLabel(" / 00:00");
+
+        bottom_button_playingList = new JButton("播放列表");
 
         bottom_combobox_playMode = new JComboBox<>();
         bottom_combobox_playMode.addItem("单曲循环");
@@ -177,35 +162,23 @@ public class WebeasyMusicGui extends JFrame{
         bottom_bar.add(bottom_slider_time);
         bottom_bar.add(bottom_label_timeNow);
         bottom_bar.add(bottom_label_timeAll);
+        bottom_bar.add(bottom_button_playingList);
         bottom_bar.add(bottom_combobox_playMode);
 
         getContentPane().add(bottom_bar, BorderLayout.SOUTH);
     }
 
     public void AddMusic(Music music){
-        /*boolean hasSelected = true;
-        if(music_list.isEmpty()){
-            hasSelected = false;
-        }
-
-        if(music_list.contains(music)){
-            return;
-        }*/
         music_list.AddMusic(music);
-        table_music_list_model.setDataVector(music_list.getMusicVector(), null);
-        table_music_list_model.fireTableRowsInserted(music_list.getMusicSize() - 1, music_list.getMusicSize() - 1);
-        table_music_list.updateUI();
+        table_music_list_model.addRow(music);
+    }
 
-        /*if(!hasSelected){
-            SelectMusic(music_list.get(current_select_music).getFileName());
-        }*/
+    public void TableShowPlayingList(){
+        table_music_list_model.setDataVector(music_list.getMusicVector(), null);
+        table_music_list_model.fireTableRowsUpdated(0, music_list.getMusicSize() - 1);
     }
 
     public void SetTimer(){
-        /*player.Select(fileName);
-        current_music_mircosecond_length = player.getMicroSecondLength();
-        int music_second_length = (int)current_music_mircosecond_length / 1000000;*/
-
         bottom_slider_time.setMinimum(0);
         bottom_slider_time.setMaximum(music_list.getSelectedMusicMicroSecond());
         bottom_slider_time.setValue(0);
@@ -229,15 +202,6 @@ public class WebeasyMusicGui extends JFrame{
 
         bottom_button_control.setText("播放");
     }
-
-    /*private void Pause(){
-        music_list.Pause();
-        bottom_button_control.setText("播放");
-    }
-
-    private void Play(){
-        music_list.Play();
-    }*/
 
     private void RefreshTimer() {
         bottom_label_timeNow.setText(music_list.getCurrentMusicMicroSecondString());
@@ -299,13 +263,13 @@ public class WebeasyMusicGui extends JFrame{
                 if(dtde.isDataFlavorSupported(DataFlavor.javaFileListFlavor)){
                     try {
                         dtde.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
-                        List list = (List)dtde.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+                        List list = (List) dtde.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
 
                         Iterator it = list.iterator();
-                        while(it.hasNext()){
-                            File file = (File)it.next();
+                        while (it.hasNext()) {
+                            File file = (File) it.next();
                             MusicFileFilter filter = new MusicFileFilter();
-                            if(filter.accept(file)){
+                            if (filter.accept(file)) {
                                 AddMusic(new Music(file));
                             }
                         }
@@ -325,6 +289,9 @@ public class WebeasyMusicGui extends JFrame{
             fileChooser.setMultiSelectionEnabled(true);
             fileChooser.showDialog(new JLabel(), "添加");
             File[] files = fileChooser.getSelectedFiles();
+            if(files.equals(null)){
+                return;
+            }
             for(File file : files){
                 AddMusic(new Music(file));
             }
@@ -334,13 +301,24 @@ public class WebeasyMusicGui extends JFrame{
             JFileChooser directoryChooser = new JFileChooser("./");
             directoryChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
             directoryChooser.showDialog(new JLabel(), "选择");
+            Queue<File> directories = new PriorityQueue<File>();
             File dir = directoryChooser.getSelectedFile();
-            String[] files = dir.list();
-            for(String fileName : files){
-                File file = new File(fileName);
-                MusicFileFilter filter = new MusicFileFilter();
-                if(filter.accept(file)){
-                    AddMusic(new Music(file));
+            if(dir == null){
+                return;
+            }
+            directories.add(dir);
+            for(;!directories.isEmpty();){
+                String[] files = directories.remove().list();
+                for(String fileName : files){
+                    File file = new File(fileName);
+                    if(file.isDirectory()){
+                        directories.add(file);
+                        continue;
+                    }
+                    MusicFileFilter filter = new MusicFileFilter();
+                    if(filter.accept(file)){
+                        AddMusic(new Music(file));
+                    }
                 }
             }
         });
@@ -349,6 +327,13 @@ public class WebeasyMusicGui extends JFrame{
     private void AddControlBarListener(){
         bottom_button_previous.addActionListener(e -> {
             music_list.GoPrevious();
+        });
+
+        bottom_button_playingList.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                final int a
+            }
         });
 
         bottom_button_control.addActionListener(e -> {
@@ -373,5 +358,9 @@ public class WebeasyMusicGui extends JFrame{
                 }
             }
         );
+
+        bottom_button_playingList.addActionListener(e -> {
+            TableShowPlayingList();
+        });
     }
 }

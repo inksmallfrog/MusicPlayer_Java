@@ -11,12 +11,10 @@ public class MusicTableRenderer extends DefaultTableCellRenderer {
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
         if(table.getColumnName(column) == "button"){
-            JButton button = (JButton)value;
-            return button;
+            return (JButton)value;
         }
 
         setText(value.toString());
-
         setForeground(Color.white);
         if(row % 2 == 0){
             setBackground(new Color(93, 93, 93));
@@ -24,7 +22,6 @@ public class MusicTableRenderer extends DefaultTableCellRenderer {
         else{
             setBackground(new Color(70, 70, 70));
         }
-
         return this;
     }
 }
